@@ -1,0 +1,2 @@
+# authmanager
+ACL manager library
