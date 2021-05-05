@@ -9,6 +9,7 @@ import (
 	"github.com/bluemeric/authmanager/directory"
 	"github.com/bluemeric/authmanager/misc"
 	json "github.com/bluemeric/authmanager/utils/json"
+	"github.com/gorilla/mux"
 
 	"net/http"
 	"strings"
@@ -16,6 +17,7 @@ import (
 
 	jwt "github.com/dgrijalva/jwt-go"
 	request "github.com/dgrijalva/jwt-go/request"
+	"github.com/gorilla/mux"
 )
 
 //To Validate Authorization Token
@@ -86,38 +88,58 @@ func DoValidateToken(rw http.ResponseWriter, req *http.Request, authUser AuthUse
 				if err := jsons.Unmarshal([]byte(authUser.Subject), &sec); err != nil {
 					panic(err)
 				}
-				url := directory.GetURL("acl", authUser.AccountID, sec["userID"].(string))
+				vars := mux.Vars(req)
+				url := directory.GetProjectACLURL("aclProject", authUser.AccountID, sec["userID"].(string), vars["ProjectID"])
 				fmt.Println(url)
 				responses, err := misc.Get(url)
-				err = jsons.Unmarshal([]byte(responses), &acl)
-				flag := 0
-				for _, i := range acl.UserACL {
-					if err != nil || len(i.Svid) == 0 {
-						fmt.Println(err)
-						return
+				fmt.Println("project acl response ====>>>", string(responses))
+				var pusers ProjectUsers
+				err = jsons.Unmarshal([]byte(responses), &pusers)
+				var projectPerminssion bool
+				for _, userid := range pusers.Users {
+					if userid == sec["userID"].(string) {
+						projectPerminssion = true
 					}
-					for _, j := range i.Ruleset.Service {
-						if j.Services == service || j.Services == "all" {
-							for _, i := range j.Permissions {
-								if i == method || i == "All" {
-									fmt.Println(i, method)
-									flag = 1
-									next(rw, req)
+				}
+				if !projectPerminssion {
+					fmt.Println("Unauthorized Access for project ------ ", vars["ProjectID"])
+					response.Put("reason", "Unauthorized Access for project "+vars["ProjectID"])
+					rw.WriteHeader(http.StatusForbidden)
+					rw.Write([]byte(response.ToString()))
+				} else {
+					url = directory.GetURL("acl", authUser.AccountID, sec["userID"].(string))
+					fmt.Println(url)
+					responses, err = misc.Get(url)
+					err = jsons.Unmarshal([]byte(responses), &acl)
+					flag := 0
+					for _, i := range acl.UserACL {
+						if err != nil || len(i.Svid) == 0 {
+							fmt.Println(err)
+							return
+						}
+						for _, j := range i.Ruleset.Service {
+							if j.Services == service || j.Services == "all" {
+								for _, i := range j.Permissions {
+									if i == method || i == "All" {
+										fmt.Println(i, method)
+										flag = 1
+										next(rw, req)
+									}
 								}
 							}
 						}
+						if flag == 1 {
+							break
+						}
 					}
-					if flag == 1 {
-						break
-					}
-				}
 
-				if flag == 0 {
-					fmt.Println("Unauthorized Access for ------ ", method)
-					response.Put("reason", "Unauthorized Access for "+method)
-					rw.WriteHeader(http.StatusForbidden)
-					rw.Write([]byte(response.ToString()))
-					//next(rw, req)
+					if flag == 0 {
+						fmt.Println("Unauthorized Access for ------ ", method)
+						response.Put("reason", "Unauthorized Access for "+method)
+						rw.WriteHeader(http.StatusForbidden)
+						rw.Write([]byte(response.ToString()))
+						//next(rw, req)
+					}
 				}
 			} else if tokenFromRedis == "NotFound" {
 				fmt.Println("not found in redis")
@@ -236,37 +258,57 @@ func DoValidateToken(rw http.ResponseWriter, req *http.Request, authUser AuthUse
 			}
 			//sec["userID"] = nil
 			if sec["userID"] != nil {
-				url := directory.GetURL("acl", authUser.AccountID, sec["userID"].(string))
+				vars := mux.Vars(req)
+				url := directory.GetProjectACLURL("aclProject", authUser.AccountID, sec["userID"].(string), vars["ProjectID"])
 				fmt.Println(url)
-				responses, err := misc.Get(url)
-				err = jsons.Unmarshal([]byte(responses), &acl)
-
-				flag := 0
-				for _, i := range acl.UserACL {
-					if err != nil || len(i.Svid) == 0 {
-						fmt.Println(err)
-						return
+				responses, _ := misc.Get(url)
+				fmt.Println("project acl response ====>>>", string(responses))
+				var pusers ProjectUsers
+				err = jsons.Unmarshal([]byte(responses), &pusers)
+				var projectPerminssion bool
+				for _, userid := range pusers.Users {
+					if userid == sec["userID"].(string) {
+						projectPerminssion = true
 					}
-					for _, j := range i.Ruleset.Service {
-						if j.Services == service || j.Services == "all" {
-							for _, i := range j.Permissions {
-								if i == method || i == "All" {
-									fmt.Println(i, method)
-									flag = 1
-									next(rw, req)
+				}
+				if !projectPerminssion {
+					fmt.Println("Unauthorized Access for project ------ ", vars["ProjectID"])
+					response.Put("reason", "Unauthorized Access for project "+vars["ProjectID"])
+					rw.WriteHeader(http.StatusForbidden)
+					rw.Write([]byte(response.ToString()))
+				} else {
+					url := directory.GetURL("acl", authUser.AccountID, sec["userID"].(string))
+					fmt.Println(url)
+					responses, err := misc.Get(url)
+					err = jsons.Unmarshal([]byte(responses), &acl)
+
+					flag := 0
+					for _, i := range acl.UserACL {
+						if err != nil || len(i.Svid) == 0 {
+							fmt.Println(err)
+							return
+						}
+						for _, j := range i.Ruleset.Service {
+							if j.Services == service || j.Services == "all" {
+								for _, i := range j.Permissions {
+									if i == method || i == "All" {
+										fmt.Println(i, method)
+										flag = 1
+										next(rw, req)
+									}
 								}
 							}
 						}
+						if flag == 1 {
+							break
+						}
 					}
-					if flag == 1 {
-						break
+					if flag == 0 {
+						fmt.Println("Unauthorized Access", token.Valid)
+						response.Put("reason", "Unauthorized Access for "+method)
+						rw.WriteHeader(http.StatusForbidden)
+						rw.Write([]byte(response.ToString()))
 					}
-				}
-				if flag == 0 {
-					fmt.Println("Unauthorized Access", token.Valid)
-					response.Put("reason", "Unauthorized Access for "+method)
-					rw.WriteHeader(http.StatusForbidden)
-					rw.Write([]byte(response.ToString()))
 				}
 			} else {
 				next(rw, req)
