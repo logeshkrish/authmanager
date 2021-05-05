@@ -71,3 +71,6 @@ type Service struct {
 	Services    string   `bson:"service,omitempty" json:"service,omitempty"`
 	Permissions []string `bson:"permissions,omitempty" json:"permissions,omitempty"`
 }
+type ProjectUsers struct {
+	Users []string `bson:"users,omitempty" json:"users,omitempty"`
+}

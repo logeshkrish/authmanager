@@ -17,7 +17,6 @@ import (
 
 	jwt "github.com/dgrijalva/jwt-go"
 	request "github.com/dgrijalva/jwt-go/request"
-	"github.com/gorilla/mux"
 )
 
 //To Validate Authorization Token
