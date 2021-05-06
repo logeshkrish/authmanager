@@ -3,13 +3,14 @@ package directory
 import (
 	"fmt"
 	//"gopaddle/core/settings"
-	cmd "gopaddle/domainmanager/utils/cmd"
-	context "gopaddle/domainmanager/utils/context"
-	json "gopaddle/domainmanager/utils/json"
-	log "gopaddle/domainmanager/utils/log"
 	"io/ioutil"
 	"os"
 	"strings"
+
+	cmd "github.com/bluemeric/authmanager/utils/cmd"
+	context "github.com/bluemeric/authmanager/utils/context"
+	json "github.com/bluemeric/authmanager/utils/json"
+	log "github.com/bluemeric/authmanager/utils/log"
 )
 
 var envi string
