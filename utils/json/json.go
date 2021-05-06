@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	log "gopaddle/domainmanager/utils/log"
 	"io"
 	"io/ioutil"
 	"reflect"
 	"strconv"
 	"strings"
+
+	log "github.com/bluemeric/authmanager/utils/log"
 )
 
 type JSON struct {

@@ -5,12 +5,13 @@ import (
 	"crypto/tls"
 	gson "encoding/json"
 	"fmt"
-	"gopaddle/domainmanager/utils/json"
-	"gopaddle/domainmanager/utils/log"
 	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/bluemeric/authmanager/utils/json"
+	log "github.com/bluemeric/authmanager/utils/log"
 )
 
 type Connection struct {

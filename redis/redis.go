@@ -3,8 +3,9 @@ package redis
 import (
 	"encoding/json"
 	"fmt"
-	"gopaddle/domainmanager/utils/context"
 	"time"
+
+	"github.com/bluemeric/authmanager/utils/context"
 
 	"github.com/garyburd/redigo/redis"
 )

@@ -1,9 +1,11 @@
 package context
 
 import (
-	json "gopaddle/domainmanager/utils/json"
-	log "gopaddle/domainmanager/utils/log"
 	"reflect"
+
+	json "github.com/bluemeric/authmanager/utils/json"
+
+	log "github.com/bluemeric/authmanager/utils/log"
 )
 
 type handle struct {

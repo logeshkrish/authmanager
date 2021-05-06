@@ -3,14 +3,15 @@ package cmd
 import (
 	"bytes"
 	"fmt"
-	"github.com/pborman/uuid"
-	log "gopaddle/domainmanager/utils/log"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"regexp"
 	"runtime"
 	"strings"
+
+	log "github.com/bluemeric/authmanager/utils/log"
+	"github.com/pborman/uuid"
 )
 
 /*

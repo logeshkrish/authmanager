@@ -1,12 +1,14 @@
 package db
 
 import (
-	"gopaddle/domainmanager/utils/context"
-	"gopaddle/domainmanager/utils/log"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	log "github.com/bluemeric/authmanager/utils/log"
+
+	context "github.com/bluemeric/authmanager/utils/context"
 
 	mgo "gopkg.in/mgo.v2"
 )
