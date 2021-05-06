@@ -106,7 +106,7 @@ func DoValidateToken(rw http.ResponseWriter, req *http.Request, authUser AuthUse
 					rw.WriteHeader(http.StatusForbidden)
 					rw.Write([]byte(response.ToString()))
 				} else {
-					url = directory.GetURL("acl", authUser.AccountID, sec["userID"].(string))
+					url = directory.GetURL("acl", authUser.AccountID, sec["userID"].(string), vars["ProjectID"])
 					fmt.Println(url)
 					responses, err = misc.Get(url)
 					err = jsons.Unmarshal([]byte(responses), &acl)
@@ -141,12 +141,13 @@ func DoValidateToken(rw http.ResponseWriter, req *http.Request, authUser AuthUse
 					}
 				}
 			} else if tokenFromRedis == "NotFound" {
+				vars := mux.Vars(req)
 				fmt.Println("not found in redis")
 				sec := map[string]interface{}{}
 				if err := jsons.Unmarshal([]byte(authUser.Subject), &sec); err != nil {
 					panic(err)
 				}
-				url := directory.GetURL("nonrootuser", authUser.AccountID, sec["userID"].(string))
+				url := directory.GetURL("nonrootuser", authUser.AccountID, sec["userID"].(string), vars["ProjectID"])
 				fmt.Println(url)
 				responses, err := misc.Get(url)
 				if err != nil {
@@ -190,7 +191,7 @@ func DoValidateToken(rw http.ResponseWriter, req *http.Request, authUser AuthUse
 					fmt.Println("Failed on Parsing JWT token Request:", redisErr.Error())
 				}
 				fmt.Println("------token added----")
-				url = directory.GetURL("acl", authUser.AccountID, sec["userID"].(string))
+				url = directory.GetURL("acl", authUser.AccountID, sec["userID"].(string), vars["ProjectID"])
 				fmt.Println("--------- ACL URL -------", url)
 				responses, err = misc.Get(url)
 				err = jsons.Unmarshal([]byte(responses), &acl)
@@ -276,7 +277,7 @@ func DoValidateToken(rw http.ResponseWriter, req *http.Request, authUser AuthUse
 					rw.WriteHeader(http.StatusForbidden)
 					rw.Write([]byte(response.ToString()))
 				} else {
-					url := directory.GetURL("acl", authUser.AccountID, sec["userID"].(string))
+					url := directory.GetURL("acl", authUser.AccountID, sec["userID"].(string), vars["ProjectID"])
 					fmt.Println(url)
 					responses, err := misc.Get(url)
 					err = jsons.Unmarshal([]byte(responses), &acl)

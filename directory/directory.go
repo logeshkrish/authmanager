@@ -152,7 +152,7 @@ func LoadDirectory(env string) bool {
 }
 
 //GetURL is
-func GetURL(collection string, accID string, id string) string {
+func GetURL(collection string, accID string, id string, projectID string) string {
 	file, err := ioutil.ReadFile(api)
 	if err != nil {
 		log.Printf(" %s Configuraiton file not found: %v", api, err)
@@ -184,7 +184,7 @@ func GetURL(collection string, accID string, id string) string {
 	endpoint := directoryProfile.GetString("host")
 	fmt.Println("ACL endpoint ====> ", endpoint)
 
-	url := fmt.Sprintf(profile.GetString("url"), endpoint, directoryProfile.GetString("port"), accID, id)
+	url := fmt.Sprintf(profile.GetString("url"), endpoint, directoryProfile.GetString("port"), accID, id, projectID)
 	fmt.Println("ACL url from domain manager ==> ", url)
 	return url
 }
