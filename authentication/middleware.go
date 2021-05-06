@@ -88,7 +88,7 @@ func DoValidateToken(rw http.ResponseWriter, req *http.Request, authUser AuthUse
 					panic(err)
 				}
 				vars := mux.Vars(req)
-				url := directory.GetProjectACLURL("aclProject", authUser.AccountID, sec["userID"].(string), vars["ProjectID"])
+				url := directory.GetURL("aclProject", authUser.AccountID, sec["userID"].(string), vars["ProjectID"])
 				fmt.Println(url)
 				responses, err := misc.Get(url)
 				fmt.Println("project acl response ====>>>", string(responses))
@@ -259,7 +259,7 @@ func DoValidateToken(rw http.ResponseWriter, req *http.Request, authUser AuthUse
 			//sec["userID"] = nil
 			if sec["userID"] != nil {
 				vars := mux.Vars(req)
-				url := directory.GetProjectACLURL("aclProject", authUser.AccountID, sec["userID"].(string), vars["ProjectID"])
+				url := directory.GetURL("aclProject", authUser.AccountID, sec["userID"].(string), vars["ProjectID"])
 				fmt.Println(url)
 				responses, _ := misc.Get(url)
 				fmt.Println("project acl response ====>>>", string(responses))

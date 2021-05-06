@@ -184,45 +184,55 @@ func GetURL(collection string, accID string, id string, projectID string) string
 	endpoint := directoryProfile.GetString("host")
 	fmt.Println("ACL endpoint ====> ", endpoint)
 
-	url := fmt.Sprintf(profile.GetString("url"), endpoint, directoryProfile.GetString("port"), accID, id, projectID)
-	fmt.Println("ACL url from domain manager ==> ", url)
-	return url
+	if collection == "acl" {
+		url := fmt.Sprintf(profile.GetString("url"), endpoint, directoryProfile.GetString("port"), accID, id, projectID)
+		fmt.Println("ACL url from domain manager ==> ", url)
+		return url
+	} else if collection == "nonrootuser" {
+		url := fmt.Sprintf(profile.GetString("url"), endpoint, directoryProfile.GetString("port"), accID, id)
+		fmt.Println("nonrootuser url from domain manager ==> ", url)
+	} else if collection == "aclProject" {
+		url := fmt.Sprintf(profile.GetString("url"), endpoint, directoryProfile.GetString("port"), accID, projectID)
+		fmt.Println("project user url from domain manager ==> ", url)
+		return url
+	}
+	return ""
 }
 
-//GetURL is
-func GetProjectACLURL(collection string, accID string, id string, projectID string) string {
-	file, err := ioutil.ReadFile(api)
-	if err != nil {
-		log.Printf(" %s Configuraiton file not found: %v", api, err)
-		return "false"
-	}
-	// Retrieving Configuration
-	var profile = json.New()
-	data := json.Parse(file)
-	//fmt.Print(data)
-	profile = data.GetJSON(collection)
-	file, err = ioutil.ReadFile(fmt.Sprintf(config, envi))
-	if err != nil {
-		log.Fatalf("Configuraiton '%s' file not found", fmt.Sprintf(config, envi))
-		return "false"
-	}
+// //GetURL is
+// func GetProjectACLURL(collection string, accID string, id string, projectID string) string {
+// 	file, err := ioutil.ReadFile(api)
+// 	if err != nil {
+// 		log.Printf(" %s Configuraiton file not found: %v", api, err)
+// 		return "false"
+// 	}
+// 	// Retrieving Configuration
+// 	var profile = json.New()
+// 	data := json.Parse(file)
+// 	//fmt.Print(data)
+// 	profile = data.GetJSON(collection)
+// 	file, err = ioutil.ReadFile(fmt.Sprintf(config, envi))
+// 	if err != nil {
+// 		log.Fatalf("Configuraiton '%s' file not found", fmt.Sprintf(config, envi))
+// 		return "false"
+// 	}
 
-	//Read Service-Directory file
-	directoryFile, err := ioutil.ReadFile(fmt.Sprintf(directory, envi))
-	if err != nil {
-		log.Fatalf("Configuraiton '%s' file not found", fmt.Sprintf(directory, envi))
-		return "false"
-	}
-	// get usermanager endpoint from Service-Directory file Configuration
-	var directoryProfile = json.New()
-	directoryData := json.Parse(directoryFile)
-	fmt.Println("env ===> ", envi)
-	// fmt.Println("directoryData ===> ", directoryData)
-	directoryProfile = directoryData.GetJSON("usermanager.ep")
-	endpoint := directoryProfile.GetString("host")
-	fmt.Println("ACL endpoint ====> ", endpoint)
+// 	//Read Service-Directory file
+// 	directoryFile, err := ioutil.ReadFile(fmt.Sprintf(directory, envi))
+// 	if err != nil {
+// 		log.Fatalf("Configuraiton '%s' file not found", fmt.Sprintf(directory, envi))
+// 		return "false"
+// 	}
+// 	// get usermanager endpoint from Service-Directory file Configuration
+// 	var directoryProfile = json.New()
+// 	directoryData := json.Parse(directoryFile)
+// 	fmt.Println("env ===> ", envi)
+// 	// fmt.Println("directoryData ===> ", directoryData)
+// 	directoryProfile = directoryData.GetJSON("usermanager.ep")
+// 	endpoint := directoryProfile.GetString("host")
+// 	fmt.Println("ACL endpoint ====> ", endpoint)
 
-	url := fmt.Sprintf(profile.GetString("url"), endpoint, directoryProfile.GetString("port"), accID, projectID)
-	fmt.Println("ACL url from domain manager ==> ", url)
-	return url
-}
+// 	url := fmt.Sprintf(profile.GetString("url"), endpoint, directoryProfile.GetString("port"), accID, projectID)
+// 	fmt.Println("ACL url from domain manager ==> ", url)
+// 	return url
+// }
