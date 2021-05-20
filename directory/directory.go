@@ -187,14 +187,18 @@ func GetURL(collection string, accID string, id string, projectID string) string
 
 	if collection == "acl" {
 		url := fmt.Sprintf(profile.GetString("url"), endpoint, directoryProfile.GetString("port"), accID, id, projectID)
-		fmt.Println("ACL url from domain manager ==> ", url)
+		fmt.Println("ACL url  ==> ", url)
 		return url
 	} else if collection == "nonrootuser" {
 		url := fmt.Sprintf(profile.GetString("url"), endpoint, directoryProfile.GetString("port"), accID, id)
-		fmt.Println("nonrootuser url from domain manager ==> ", url)
+		fmt.Println("nonrootuser url ==> ", url)
 	} else if collection == "aclProject" {
 		url := fmt.Sprintf(profile.GetString("url"), endpoint, directoryProfile.GetString("port"), accID, projectID)
-		fmt.Println("project user url from domain manager ==> ", url)
+		fmt.Println("project user url  ==> ", url)
+		return url
+	} else if collection == "project" {
+		url := fmt.Sprintf(profile.GetString("url"), endpoint, directoryProfile.GetString("port"), accID)
+		fmt.Println("project list url  ==> ", url)
 		return url
 	}
 	return ""

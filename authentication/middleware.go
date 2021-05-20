@@ -22,14 +22,14 @@ import (
 //To Validate Authorization Token
 //Get accountID from the token [from claims["jti"]]
 //Get the token from the header and validate it with token.Valid and check it in redis with expiry time
-func RequireTokenAuthentication(rw http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
+func RequireTokenAuthentication(rw http.ResponseWriter, req *http.Request, method string, next http.HandlerFunc) {
 	response := json.New()
 	// log.Info("Inside RequireTokenAuthentication")
 	if req.Header.Get("Authorization") != "" {
 		//Decode the token and get the accountID
 		if authUser, err := DoTokenDecode(req.Header.Get("Authorization")); err == nil {
 			//Validate the token
-			DoValidateToken(rw, req, authUser, next)
+			DoValidateToken(rw, req, authUser, method, next)
 		} else {
 			if err != nil {
 				fmt.Println("Failed while decoding JWT token: ", err.Error())
@@ -50,10 +50,28 @@ func RequireTokenAuthentication(rw http.ResponseWriter, req *http.Request, next 
 }
 
 //To Validate The Redis Token
-func DoValidateToken(rw http.ResponseWriter, req *http.Request, authUser AuthUser, next http.HandlerFunc) {
+func DoValidateToken(rw http.ResponseWriter, req *http.Request, authUser AuthUser, method string, next http.HandlerFunc) {
 	response := json.New()
-	var method string
-	method = GetRequestType()
+	var projects []string
+	vars := mux.Vars(req)
+	url := directory.GetURL("project", authUser.AccountID, "", "")
+	fmt.Println(url)
+	responses, _ := misc.Get(url)
+	jsons.Unmarshal([]byte(responses), &projects)
+	var avail bool
+	for _, project := range projects {
+		if project == vars["ProjectID"] {
+			avail = true
+		}
+	}
+	if avail == false {
+		fmt.Println("project not found------ ", vars["ProjectID"])
+		response.Put("reason", "the project "+vars["ProjectID"]+" not found")
+		rw.WriteHeader(http.StatusForbidden)
+		rw.Write([]byte(response.ToString()))
+	}
+	// var method string
+	// method = GetRequestType()
 	authBackend := InitJWTAuthenticationBackend()
 	fmt.Println("--------reqMethod----------", req.Method)
 	// var extractor request.Extractor = request.AuthorizationHeaderExtractor
@@ -87,7 +105,7 @@ func DoValidateToken(rw http.ResponseWriter, req *http.Request, authUser AuthUse
 				if err := jsons.Unmarshal([]byte(authUser.Subject), &sec); err != nil {
 					panic(err)
 				}
-				vars := mux.Vars(req)
+
 				url := directory.GetURL("aclProject", authUser.AccountID, sec["userID"].(string), vars["ProjectID"])
 				fmt.Println(url)
 				responses, err := misc.Get(url)
