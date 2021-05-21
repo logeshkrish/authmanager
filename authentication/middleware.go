@@ -69,6 +69,7 @@ func DoValidateToken(rw http.ResponseWriter, req *http.Request, authUser AuthUse
 		response.Put("reason", "the project "+vars["ProjectID"]+" not found")
 		rw.WriteHeader(http.StatusForbidden)
 		rw.Write([]byte(response.ToString()))
+		return
 	}
 	// var method string
 	// method = GetRequestType()
