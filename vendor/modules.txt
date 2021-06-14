@@ -1,0 +1,66 @@
+# github.com/araddon/gou v0.0.0-20190110011759-c797efecbb61
+## explicit
+github.com/araddon/gou
+# github.com/bitly/go-hostpool v0.1.0
+## explicit
+github.com/bitly/go-hostpool
+# github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869
+## explicit
+# github.com/dgrijalva/jwt-go v3.2.0+incompatible
+## explicit
+github.com/dgrijalva/jwt-go
+github.com/dgrijalva/jwt-go/request
+# github.com/garyburd/redigo v1.6.2
+## explicit
+github.com/garyburd/redigo/internal
+github.com/garyburd/redigo/redis
+# github.com/google/uuid v1.0.0
+github.com/google/uuid
+# github.com/gorilla/mux v1.8.0
+## explicit
+github.com/gorilla/mux
+# github.com/hhkbp2/go-logging v0.3.6
+## explicit
+github.com/hhkbp2/go-logging
+# github.com/hhkbp2/go-strftime v0.0.0-20150709091403-d82166ec6782
+github.com/hhkbp2/go-strftime
+# github.com/kr/pretty v0.2.1
+## explicit
+# github.com/mattbaird/elastigo v0.0.0-20170123220020-2fe47fd29e4b
+## explicit
+github.com/mattbaird/elastigo/lib
+# github.com/mattn/go-isatty v0.0.12
+## explicit
+github.com/mattn/go-isatty
+# github.com/onrik/logrus v0.9.0
+## explicit
+github.com/onrik/logrus/filename
+# github.com/pborman/uuid v1.2.1
+## explicit
+github.com/pborman/uuid
+# github.com/sadlil/gologger v0.0.0-20180131031757-2507bf651df8
+## explicit
+github.com/sadlil/gologger
+# github.com/shiena/ansicolor v0.0.0-20200904210342-c7312218db18
+## explicit
+github.com/shiena/ansicolor
+# github.com/sirupsen/logrus v1.8.1
+## explicit
+github.com/sirupsen/logrus
+# github.com/smartystreets/goconvey v1.6.4
+## explicit
+# github.com/yasuyuky/jsonpath v0.0.0-20180525223741-1a88054325d2
+## explicit
+github.com/yasuyuky/jsonpath
+# golang.org/x/sys v0.0.0-20200116001909-b77594299b42
+golang.org/x/sys/unix
+golang.org/x/sys/windows
+# gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22
+## explicit
+gopkg.in/mgo.v2
+gopkg.in/mgo.v2/bson
+gopkg.in/mgo.v2/internal/json
+gopkg.in/mgo.v2/internal/sasl
+gopkg.in/mgo.v2/internal/scram
+# gopkg.in/yaml.v2 v2.2.2
+gopkg.in/yaml.v2

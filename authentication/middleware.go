@@ -32,9 +32,9 @@ func RequireTokenAuthentication(rw http.ResponseWriter, req *http.Request, metho
 			DoValidateToken(rw, req, authUser, method, next)
 		} else {
 			if err != nil {
-				fmt.Println("Failed while decoding JWT token: ", err.Error())
+				log.Errorln("Failed while decoding JWT token: ", err.Error())
 			} else {
-				fmt.Println("AccountID in Token: ", authUser.AccountID)
+				// log.Println("AccountID in Token: ", authUser.AccountID)
 				log.Error("AccountID in the request is mismatched with JWT Token")
 			}
 			response.Put("reason", "Unauthorized")
@@ -42,7 +42,7 @@ func RequireTokenAuthentication(rw http.ResponseWriter, req *http.Request, metho
 			rw.Write([]byte(response.ToString()))
 		}
 	} else {
-		fmt.Println("Request header does not contain auth token from domain manager")
+		log.Errorln("Request header does not contain auth token ")
 		response.Put("reason", "Request header does not contain auth token")
 		rw.WriteHeader(http.StatusForbidden)
 		rw.Write([]byte(response.ToString()))
@@ -55,7 +55,7 @@ func DoValidateToken(rw http.ResponseWriter, req *http.Request, authUser AuthUse
 	var projects []string
 	vars := mux.Vars(req)
 	url := directory.GetURL("project", authUser.AccountID, "", "")
-	fmt.Println(url)
+	// fmt.Println(url)
 	responses, _ := misc.Get(url)
 	jsons.Unmarshal([]byte(responses), &projects)
 	var avail bool
@@ -65,7 +65,7 @@ func DoValidateToken(rw http.ResponseWriter, req *http.Request, authUser AuthUse
 		}
 	}
 	if avail == false {
-		fmt.Println("project not found------ ", vars["ProjectID"])
+		log.Error("project not found:", vars["ProjectID"])
 		response.Put("reason", "the project "+vars["ProjectID"]+" not found")
 		rw.WriteHeader(http.StatusForbidden)
 		rw.Write([]byte(response.ToString()))
@@ -74,12 +74,12 @@ func DoValidateToken(rw http.ResponseWriter, req *http.Request, authUser AuthUse
 	// var method string
 	// method = GetRequestType()
 	authBackend := InitJWTAuthenticationBackend()
-	fmt.Println("--------reqMethod----------", req.Method)
+	// fmt.Println("--------reqMethod----------", req.Method)
 	// var extractor request.Extractor = request.AuthorizationHeaderExtractor
 	service := "domain"
 
 	split := strings.Split(req.Header.Get("Authorization"), " ")
-	fmt.Println("Autherization header type[token/Bearer]", split[0])
+	// fmt.Println("Autherization header type[token/Bearer]", split[0])
 	//fmt.Println(token.Raw)
 	//fmt.Println(token.Valid, err, token.Raw)
 	var acl AClArray
@@ -90,27 +90,27 @@ func DoValidateToken(rw http.ResponseWriter, req *http.Request, authUser AuthUse
 			return authBackend.PublicKey, nil
 		})
 		if err != nil {
-			fmt.Println("------Unauthorized Access-----", err)
+			log.Errorln("Unauthorized Access:", err)
 			response.Put("reason", "Unauthorized")
 			rw.WriteHeader(http.StatusForbidden)
 			rw.Write([]byte(response.ToString()))
 			return
 		}
-		fmt.Println(token.Valid, err)
+		// fmt.Println(token.Valid, err)
 		if err == nil && token.Valid {
 			//fmt.Println("in")
 			tokenFromRedis := authBackend.ReadValueFromRedis(token.Raw)
 			if tokenFromRedis == "Found" {
-				fmt.Println("found in redis[middleware]")
+				// fmt.Println("found in redis[middleware]")
 				sec := map[string]interface{}{}
 				if err := jsons.Unmarshal([]byte(authUser.Subject), &sec); err != nil {
 					panic(err)
 				}
 
 				url := directory.GetURL("aclProject", authUser.AccountID, sec["userID"].(string), vars["ProjectID"])
-				fmt.Println(url)
+				// fmt.Println(url)
 				responses, err := misc.Get(url)
-				fmt.Println("project acl response ====>>>", string(responses))
+				// fmt.Println("project acl response ====>>>", string(responses))
 				var pusers ProjectUsers
 				err = jsons.Unmarshal([]byte(responses), &pusers)
 				var projectPerminssion bool
@@ -120,26 +120,26 @@ func DoValidateToken(rw http.ResponseWriter, req *http.Request, authUser AuthUse
 					}
 				}
 				if !projectPerminssion {
-					fmt.Println("Unauthorized Access for project ------ ", vars["ProjectID"])
+					log.Errorln("Unauthorized Access for project:", vars["ProjectID"])
 					response.Put("reason", "Unauthorized Access for project "+vars["ProjectID"])
 					rw.WriteHeader(http.StatusForbidden)
 					rw.Write([]byte(response.ToString()))
 				} else {
 					url = directory.GetURL("acl", authUser.AccountID, sec["userID"].(string), vars["ProjectID"])
-					fmt.Println(url)
+					// fmt.Println(url)
 					responses, err = misc.Get(url)
 					err = jsons.Unmarshal([]byte(responses), &acl)
 					flag := 0
 					for _, i := range acl.UserACL {
 						if err != nil || len(i.Svid) == 0 {
-							fmt.Println(err)
+							log.Errorln(err)
 							return
 						}
 						for _, j := range i.Ruleset.Service {
 							if j.Services == service || j.Services == "all" {
 								for _, i := range j.Permissions {
 									if i == method || i == "All" {
-										fmt.Println(i, method)
+										log.Errorln(i, method)
 										flag = 1
 										next(rw, req)
 									}
@@ -152,7 +152,7 @@ func DoValidateToken(rw http.ResponseWriter, req *http.Request, authUser AuthUse
 					}
 
 					if flag == 0 {
-						fmt.Println("Unauthorized Access for ------ ", method)
+						log.Errorln("Unauthorized Access for: ", method)
 						response.Put("reason", "Unauthorized Access for "+method)
 						rw.WriteHeader(http.StatusForbidden)
 						rw.Write([]byte(response.ToString()))
@@ -161,17 +161,17 @@ func DoValidateToken(rw http.ResponseWriter, req *http.Request, authUser AuthUse
 				}
 			} else if tokenFromRedis == "NotFound" {
 				vars := mux.Vars(req)
-				fmt.Println("not found in redis")
+				// fmt.Println("not found in redis")
 				sec := map[string]interface{}{}
 				if err := jsons.Unmarshal([]byte(authUser.Subject), &sec); err != nil {
 					panic(err)
 				}
 				url := directory.GetURL("nonrootuser", authUser.AccountID, sec["userID"].(string), vars["ProjectID"])
-				fmt.Println(url)
+				log.Errorln(url)
 				responses, err := misc.Get(url)
 				if err != nil {
 					//fmt.Println(err)
-					fmt.Println("Unauthorized Access", err)
+					log.Errorln("Unauthorized Access", err)
 					response.Put("reason", "Unauthorized")
 					rw.WriteHeader(http.StatusForbidden)
 					rw.Write([]byte(response.ToString()))
@@ -179,7 +179,7 @@ func DoValidateToken(rw http.ResponseWriter, req *http.Request, authUser AuthUse
 				}
 				err = jsons.Unmarshal([]byte(responses), &user)
 				if err != nil || len(user.ID) == 0 {
-					fmt.Println("Unauthorized Access", err)
+					log.Errorln("Unauthorized Access", err)
 					response.Put("reason", "Unauthorized")
 					rw.WriteHeader(http.StatusForbidden)
 					rw.Write([]byte(response.ToString()))
@@ -187,13 +187,13 @@ func DoValidateToken(rw http.ResponseWriter, req *http.Request, authUser AuthUse
 				}
 				flag := 0
 				for _, i := range user.APITokens {
-					fmt.Println(i.Token == split[1])
+					// fmt.Println(i.Token == split[1])
 					if i.Token == split[1] {
 						flag = 1
 					}
 				}
 				if flag == 0 {
-					fmt.Println("Unauthorized Access : unknown token")
+					log.Errorln("Unauthorized Access : unknown token")
 					response.Put("reason", "Unauthorized Access : unknown token")
 					rw.WriteHeader(http.StatusForbidden)
 					rw.Write([]byte(response.ToString()))
@@ -203,29 +203,29 @@ func DoValidateToken(rw http.ResponseWriter, req *http.Request, authUser AuthUse
 					return authBackend.PublicKey, nil
 				})
 				if tokenReqErr != nil {
-					fmt.Println("Failed on Parsing JWT token Request:", tokenReqErr.Error())
+					log.Errorln("Failed on Parsing JWT token Request:", tokenReqErr.Error())
 				}
 				redisErr := authBackend.SetValueInRedis(token.Raw, tokenRequest)
 				if redisErr != nil {
-					fmt.Println("Failed on Parsing JWT token Request:", redisErr.Error())
+					log.Errorln("Failed on Parsing JWT token Request:", redisErr.Error())
 				}
-				fmt.Println("------token added----")
+				// fmt.Println("------token added----")
 				url = directory.GetURL("acl", authUser.AccountID, sec["userID"].(string), vars["ProjectID"])
-				fmt.Println("--------- ACL URL -------", url)
+				// fmt.Println("--------- ACL URL -------", url)
 				responses, err = misc.Get(url)
 				err = jsons.Unmarshal([]byte(responses), &acl)
 				//fmt.Println(sec)
 				flag = 0
 				for _, i := range acl.UserACL {
 					if err != nil || len(i.Svid) == 0 {
-						fmt.Println(err)
+						log.Errorln(err)
 						return
 					}
 					for _, j := range i.Ruleset.Service {
 						if j.Services == service || j.Services == "all" {
 							for _, i := range j.Permissions {
 								if i == method || i == "All" {
-									fmt.Println(i, method)
+									log.Errorln(i, method)
 									flag = 1
 									next(rw, req)
 								}
@@ -238,21 +238,21 @@ func DoValidateToken(rw http.ResponseWriter, req *http.Request, authUser AuthUse
 				}
 
 				if flag == 0 {
-					fmt.Println(" ---- Unauthorized Access ----", token.Valid)
+					log.Errorln("Unauthorized Access", token.Valid)
 					response.Put("reason", "Unauthorized Access for "+method)
 					rw.WriteHeader(http.StatusForbidden)
 					rw.Write([]byte(response.ToString()))
 					return
 				}
-				fmt.Println(req.Method)
+				// fmt.Println(req.Method)
 			} else if tokenFromRedis == "ErrorInConnection" {
-				fmt.Println("Error While Reading Token from Redis")
+				log.Errorln("Error While Reading Token from Redis")
 				response.Put("reason", "Error While Reading Token from Redis")
 				rw.WriteHeader(http.StatusInternalServerError)
 				rw.Write([]byte(response.ToString()))
 			}
 		} else {
-			fmt.Println("Unauthorized Access", err)
+			log.Errorln("Unauthorized Access", err)
 			response.Put("reason", "Unauthorized")
 			rw.WriteHeader(http.StatusForbidden)
 			rw.Write([]byte(response.ToString()))
@@ -279,9 +279,9 @@ func DoValidateToken(rw http.ResponseWriter, req *http.Request, authUser AuthUse
 			if sec["userID"] != nil {
 				vars := mux.Vars(req)
 				url := directory.GetURL("aclProject", authUser.AccountID, sec["userID"].(string), vars["ProjectID"])
-				fmt.Println(url)
+				// fmt.Println(url)
 				responses, _ := misc.Get(url)
-				fmt.Println("project acl response ====>>>", string(responses))
+				// fmt.Println("project acl response ====>>>", string(responses))
 				var pusers ProjectUsers
 				err = jsons.Unmarshal([]byte(responses), &pusers)
 				var projectPerminssion bool
@@ -291,27 +291,27 @@ func DoValidateToken(rw http.ResponseWriter, req *http.Request, authUser AuthUse
 					}
 				}
 				if !projectPerminssion {
-					fmt.Println("Unauthorized Access for project ------ ", vars["ProjectID"])
+					log.Errorln("Unauthorized Access for project ", vars["ProjectID"])
 					response.Put("reason", "Unauthorized Access for project "+vars["ProjectID"])
 					rw.WriteHeader(http.StatusForbidden)
 					rw.Write([]byte(response.ToString()))
 				} else {
 					url := directory.GetURL("acl", authUser.AccountID, sec["userID"].(string), vars["ProjectID"])
-					fmt.Println(url)
+					// fmt.Println(url)
 					responses, err := misc.Get(url)
 					err = jsons.Unmarshal([]byte(responses), &acl)
 
 					flag := 0
 					for _, i := range acl.UserACL {
 						if err != nil || len(i.Svid) == 0 {
-							fmt.Println(err)
+							log.Errorln(err)
 							return
 						}
 						for _, j := range i.Ruleset.Service {
 							if j.Services == service || j.Services == "all" {
 								for _, i := range j.Permissions {
 									if i == method || i == "All" {
-										fmt.Println(i, method)
+										// fmt.Println(i, method)
 										flag = 1
 										next(rw, req)
 									}
@@ -323,7 +323,7 @@ func DoValidateToken(rw http.ResponseWriter, req *http.Request, authUser AuthUse
 						}
 					}
 					if flag == 0 {
-						fmt.Println("Unauthorized Access", token.Valid)
+						log.Errorln("Unauthorized Access", token.Valid)
 						response.Put("reason", "Unauthorized Access for "+method)
 						rw.WriteHeader(http.StatusForbidden)
 						rw.Write([]byte(response.ToString()))
@@ -333,12 +333,12 @@ func DoValidateToken(rw http.ResponseWriter, req *http.Request, authUser AuthUse
 				next(rw, req)
 			}
 		} else if tokenFromRedis == "ErrorInConnection" {
-			fmt.Println("Error While Reading the Token from Redis")
+			log.Errorln("Error While Reading the Token from Redis")
 			response.Put("reason", "Error While Reading the Token from Redis")
 			rw.WriteHeader(http.StatusInternalServerError)
 			rw.Write([]byte(response.ToString()))
 		} else {
-			fmt.Println("Unauthorized Access", token.Valid)
+			log.Errorln("Unauthorized Access", token.Valid)
 			response.Put("reason", "Unauthorized")
 			rw.WriteHeader(http.StatusForbidden)
 			rw.Write([]byte(response.ToString()))
@@ -380,7 +380,7 @@ func DoTokenDecode(token string) (AuthUser, error) {
 				payload = payload + "="
 				//fmt.Println("Payload from the token: ", payload)
 				if data, err = base64.StdEncoding.DecodeString(payload); err != nil {
-					fmt.Println("Error in decoding token retry: ", err.Error())
+					log.Errorln("Error in decoding token retry: ", err.Error())
 					return sg, err
 				}
 			}
@@ -391,24 +391,24 @@ func DoTokenDecode(token string) (AuthUser, error) {
 		claims := string(data[:])
 		err = jsons.Unmarshal([]byte(claims), &sg)
 		if err != nil {
-			fmt.Println(err)
+			log.Errorln(err)
 		}
-		fmt.Println(" Clims value after decoding the token: ", string(claims))
+		log.Errorln(" Clims value after decoding the token: ", string(claims))
 		//claimsObj := json.ParseString(string(claims))
 		timecheck := sg.Exp
 		//fmt.Println(sg)
 		exptime := timecheck
 		now := time.Now().UnixNano() / 1000000000
 		if exptime < now {
-			fmt.Println(exptime, now)
+			log.Errorln(exptime, now)
 			//return sg, errors.New("Expired JWT token: " + claimsObj.GetString("exp"))
 		} else {
-			fmt.Println(exptime, now)
+			log.Errorln(exptime, now)
 		}
 		return sg, nil
 
 	} else {
-		fmt.Println("Invalid JWT token: ", token)
+		log.Errorln("Invalid JWT token: ", token)
 		return sg, errors.New("Invalid JWT token: " + token)
 	}
 }
